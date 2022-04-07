@@ -1,7 +1,10 @@
 // const http = require('http')
 const express = require('express')
 const app = express()
+const morgan = require('morgan')
 app.use(express.json())
+
+app.use(morgan(":method :url :status :res[content-length] - :response-time ms :Person"))
 
 let persons = [{
         id: 1,
@@ -35,6 +38,14 @@ let persons = [{
 //     response.writeHead(200, { 'Content-Type': 'application/json' })
 //     response.end(JSON.stringify(persons))
 //   })
+morgan.token('Person', (req, res) => {
+    if (req.method === 'POST'){
+        return JSON.stringify(req.body)
+    }
+    else{
+    return null
+    }
+})
 
 app.get('/api/persons', (req, res) => {
     res.json(persons)
@@ -45,20 +56,20 @@ app.get('/info', (req, res) => {
     res.status(404).end()
 })
 
-app.get('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
+app.get('/api/persons/:id', (req, res) => {
+    const id = Number(req.params.id)
     const person = persons.find(person => person.id === id)
     console.log(person)
 
     if (persons) {
-        response.json(persons)
+        res.json(persons)
     } else {
-        response.status(404).end()
+        res.status(404).end()
     }
 })
 
-app.delete('/api/persons/:id', (request, res) => {
-    const id = Number(request.params.id)
+app.delete('/api/persons/:id', (req, res) => {
+    const id = Number(req.params.id)
     persons = persons.filter(person => person.id !== id)
     res.status(204).end()
 })
@@ -74,7 +85,7 @@ app.post('/api/persons', (req, res) => {
     const body = req.body
 
     if (!body) {
-        return res.status(400).json({
+        return res.status(404).json({
             error: 'content missing'
         })
     }
